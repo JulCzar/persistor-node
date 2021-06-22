@@ -1,0 +1,9 @@
+{
+  "name": "PersistorNode",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/JulCzar/persistentStorage.git",
+  "author": "JulCzar <julczar21@outlook.com>",
+  "license": "MIT",
+  "dependencies": {}
+}
