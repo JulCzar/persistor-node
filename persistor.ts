@@ -1,113 +1,117 @@
-import fs from 'fs';
+type Observer = () => void
+interface Config {
+  path?: string
+  expireIn?: number
+}
 
-class StoreItem<T> {
-  value: T;
-  expireIn?: Date;
+class StoreItem {
+  value: unknown
+  expireIn?: number
 
-  constructor(value: T, expireIn?: Date) {
-    this.value = value;
-    this.expireIn = expireIn;
+  constructor(value: unknown, expireIn?: number) {
+    this.value = value
+    this.expireIn = expireIn
   }
 
-  fromString(str: string) {
-    try {
-      const { value, expireIn } = JSON.parse(str);
+  parseFromString(str: string) {
+    const { value, expireIn } = JSON.parse(str)
 
-      return new StoreItem(value, expireIn);
-    } catch {
-      
-    }
+    return new StoreItem(value, expireIn)
   }
 }
 
-function getPersistentStorage(config) {
-  const { path = 'storage', expireIn } = config ?? {};
+export function getPersistentStorage(config?: Config) {
+  const { path = 'storage', expireIn } = config ?? {}
 
-  /** @type {{expireIn: number, [key:string]: StoreItem}} */
-  const store = { expireIn };
-  const observers = [];
+  const store: any = { expireIn }
+  const observers: Observer[] = []
 
-  const setStore = data => {
-    Object.assign(store, data);
-  };
+  const setStore = (data: unknown) => {
+    Object.assign(store, data)
+  }
 
-  /** @param {string} key */
-  const getItem = key => {
-    const data = store[key];
+  const getItem = <T>(key: string): T | null => {
+    const data = store[key]
 
-    if (!data) return;
+    if (!data) return null
 
-    if (!data.expireIn) return data.value;
+    if (!data.expireIn) return data.value
 
-    if (data.expireIn <= Date.now()) return removeItem(key);
+    if (data.expireIn <= Date.now()) {
+      removeItem(key)
+      return null
+    }
 
-    return data.value;
-  };
+    return data.value
+  }
 
-  /** @param {string} key @param {any} value @param {number} expireIn time to expire content, in minutes */
-  const setItem = (key, value, expireIn) => {
-    const storeItem = new StoreItem(value, Date.now() + expireIn * 60000);
+  /** @param expireIn time to expire content, in minutes */
+  const setItem = (key: string, value: unknown, expireIn?: number) => {
+    const expireDate = expireIn ? Date.now() + expireIn * 60000 : undefined
+    const storeItem = new StoreItem(value, expireDate)
 
-    const store = { [key]: storeItem };
+    const store = { [key]: storeItem }
 
-    setStore(store);
+    setStore(store)
 
-    updateStore();
-  };
+    updateStore()
+  }
 
   const clear = () => {
-    for (const key of Object.keys(store)) delete store[key];
+    for (const key of Object.keys(store)) delete store[key]
 
-    updateStore();
+    updateStore()
 
-    fs.unlinkSync(path);
-  };
+    globalThis?.localStorage.removeItem(path)
+  }
 
-  /** @param {string} key */
-  const removeItem = key => {
-    delete store[key];
+  const removeItem = (key: string) => {
+    delete store[key]
 
-    updateStore();
-  };
+    updateStore()
+  }
 
-  /** @param {function} observer */
-  const subscribe = observer => {
-    if (typeof observer === 'function') observers.push(observer);
-  };
+  const subscribe = (observer: Observer) => {
+    if (typeof observer === 'function') observers.push(observer)
+  }
 
-  const notifyAll = () => observers.forEach(o => o());
+  const notifyAll = () => observers.forEach(o => o())
 
   const updateStore = () => {
-    const stringifiedStore = JSON.stringify(store);
+    const stringifiedStore = JSON.stringify(store)
 
-    fs.writeFileSync(path, stringifiedStore);
-    notifyAll();
-  };
+    globalThis?.localStorage.setItem(path, stringifiedStore)
+
+    notifyAll()
+  }
 
   const _init = () => {
     try {
-      const encryptedStorePersisted = fs.readFileSync(path, { flag: 'a+' });
+      const encryptedStorePersisted =
+        globalThis?.localStorage?.getItem(path) || ''
 
-      const stringified = encryptedStorePersisted.toString();
+      const stringified = encryptedStorePersisted.toString()
 
-      /** @type {{expireIn: number, [name:string]: any}} */
-      const parsedStore = stringified ? JSON.parse(stringified) : { expireIn };
+      const parsedStore: any = stringified
+        ? JSON.parse(stringified)
+        : { expireIn }
 
-      if (!parsedStore?.expireIn) 0;
-      else if (parsedStore.expireIn <= Date.now()) throw Error('Store Expired');
+      if (!parsedStore?.expireIn) void 0
+      else if (parsedStore.expireIn <= Date.now())
+        console.error('Store Expired')
 
-      setStore(parsedStore);
+      setStore(parsedStore)
     } catch (error) {
       console.log(
         'store could not be loaded due to inconsistent data, state was cleared'
-      );
-      console.error(error);
+      )
+      console.error(error)
     }
 
-    return { clear, getItem, removeItem, setItem, subscribe };
-  };
+    return { clear, getItem, removeItem, setItem, subscribe }
+  }
 
-  return _init();
+  return _init()
 }
 
-module.exports = getPersistentStorage;
+export const persistentStorage = getPersistentStorage()

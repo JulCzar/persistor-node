@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { Nullable } from '../../types';
 import { tryRecoverStorage } from './tryRecoveStorage';
 
 export class NodeStorage implements Storage {
@@ -20,14 +21,14 @@ export class NodeStorage implements Storage {
     return this._storage.size;
   }
 
-  key(index: number): string | null {
+  key(index: number): Nullable<string> {
     if (index < 0) return null;
     const keys = this._storage.keys();
     for (let i = 0; i < index; keys.next(), i++) 0;
 
     return keys.next().value ?? null;
   }
-  getItem(key: string): string | null {
+  getItem(key: string): Nullable<string> {
     return this._storage.get(key) ?? null;
   }
   setItem(key: string, value: string): void {
