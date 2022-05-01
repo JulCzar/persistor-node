@@ -36,7 +36,6 @@ export interface AsyncPersistentStorageConfigs {
 }
 
 export interface PersistentStorageDto {
-  config: Partial<PersistentStorageConfigs>;
   items: StoreDto[];
   expireIn: string | undefined;
 }

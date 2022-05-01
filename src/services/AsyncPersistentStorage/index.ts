@@ -225,11 +225,9 @@ export class AsyncPersistentStorage {
     const store = this._store;
     const expireIn = serializeDate(this._expireIn);
 
-    const { storage: _, ...config } = this._config;
-
     const items: StoreDto[] = [];
     for (const [key, value] of store) items.push({ key, value });
 
-    return { config, items, expireIn };
+    return { items, expireIn };
   }
 }
