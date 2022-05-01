@@ -1,5 +1,4 @@
-import { format, isValid, parse } from 'date-fns';
-import { isDate } from 'util/types';
+import { format, isDate, isValid, parse } from 'date-fns';
 import { DATE_FORMAT } from '../constants';
 
 const valueSyn = Symbol('value');
@@ -10,7 +9,6 @@ export interface StoreItemJSON {
 }
 
 export class StoreItem {
-  private static _emptyInstance: StoreItem;
   private [valueSyn]: unknown;
   private _expireIn?: Date;
 
@@ -28,7 +26,7 @@ export class StoreItem {
   }
 
   isExpired() {
-    if (isDate(this._expireIn)) {
+    if (this._expireIn && isDate(this._expireIn)) {
       return this._expireIn < new Date();
     }
 

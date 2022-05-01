@@ -1,3 +1,5 @@
 storage
 node_modules
 .github
+dist
+types

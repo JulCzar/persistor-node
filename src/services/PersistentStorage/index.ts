@@ -20,7 +20,6 @@ import {
   Unsubscriber,
 } from '../../types';
 import { AsyncStorage } from '../../types/AsyncStorage';
-import { getAvailableStorage } from '../../utils/availableStorage';
 import { getExpirationDate } from '../../utils/getExpirationDate';
 import { serializeDate } from '../../utils/serializeDate';
 
@@ -49,9 +48,9 @@ export class PersistentStorage {
       observer.call(undefined, event);
     }
   }
-  static getOrCreate(key: string, config?: PersistentStorageConfigs) {
-    const _storageKey = config?.key ?? DEFAULT_STORAGE_KEY;
-    const storage = config?.storage ?? getAvailableStorage();
+  static getOrCreate(key: string, config: PersistentStorageConfigs) {
+    const _storageKey = config.key ?? DEFAULT_STORAGE_KEY;
+    const storage = config.storage;
 
     if (!this._instances) this.restoreFromDirectory(storage, _storageKey);
 
