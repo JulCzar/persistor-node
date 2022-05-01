@@ -37,7 +37,7 @@ export class StoreItem {
     try {
       const expireInDate = parse(expireIn, DATE_FORMAT, new Date());
 
-      if (!isValid(expireInDate)) return null;
+      if (expireIn) if (!isValid(expireInDate)) return null;
 
       return new StoreItem(
         value,
