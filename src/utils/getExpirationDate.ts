@@ -1,11 +1,13 @@
 import { Duration } from './duration';
+import { addMilliseconds } from 'date-fns'
 
 /** return the expiration date of the item from an time in minutes */
-export const getExpirationDate = (minutes?: number) => {
-  if (!minutes) return undefined;
+export const getExpirationDate = (duration?: number | Duration) => {
+  if (!duration) return undefined;
 
-  const now = Date.now();
-  const lifeSpan = new Duration({ minutes });
+  const now = new Date();
+  
+  const lifeSpan = typeof duration === 'number' ? new Duration({ minutes: duration }) : duration;
 
-  return new Date(now + lifeSpan.value);
+  return addMilliseconds(now, lifeSpan.inMilliseconds);
 };

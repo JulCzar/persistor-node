@@ -1,14 +1,20 @@
+import { format, isValid, parse } from 'date-fns';
 import { isDate } from 'util/types';
+import { DATE_FORMAT } from '../constants';
 
 const valueSyn = Symbol('value');
-const epochDate = new Date(0);
 
-export class StoreItem<T = unknown> {
-  private static _emptyInstance: StoreItem<never>;
-  private [valueSyn]: T;
+export interface StoreItemJSON {
+  value: unknown;
+  expireIn: string;
+}
+
+export class StoreItem {
+  private static _emptyInstance: StoreItem;
+  private [valueSyn]: unknown;
   private _expireIn?: Date;
 
-  constructor(value: T, expireIn?: Date) {
+  constructor(value: unknown, expireIn?: Date) {
     this[valueSyn] = value;
     this._expireIn = expireIn;
   }
@@ -29,33 +35,30 @@ export class StoreItem<T = unknown> {
     return false;
   }
 
-  private static get emptyInstance() {
-    if (!StoreItem._emptyInstance) {
-      StoreItem._emptyInstance = new StoreItem<never>(
-        undefined as never,
-        epochDate
-      );
-    }
-
-    return StoreItem._emptyInstance;
-  }
-
-  static fromJSON<T>(str: string) {
+  static fromJSON({ value, expireIn }: StoreItemJSON) {
     try {
-      const { value, expireIn } = JSON.parse(str);
+      const expireInDate = parse(expireIn, DATE_FORMAT, new Date());
 
-      return new StoreItem<T>(value, expireIn);
+      if (!isValid(expireInDate)) return null;
+
+      return new StoreItem(
+        value,
+        expireIn !== undefined ? expireInDate : undefined
+      );
     } catch (e) {
       console.warn(e);
 
-      return this.emptyInstance;
+      return null;
     }
   }
 
   toJSON() {
+    if (this.isExpired()) return undefined;
+    const expireIn = this._expireIn;
+
     return {
       value: this.value,
-      expireIn: this._expireIn,
+      expireIn: expireIn ? format(expireIn, DATE_FORMAT) : undefined,
     };
   }
 }
