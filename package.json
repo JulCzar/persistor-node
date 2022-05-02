@@ -1,6 +1,6 @@
 {
   "name": "persistor-node",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "repository": "https://github.com/JulCzar/persistentStorage.git",
   "author": "JulCzar <julczar21@outlook.com>",
   "license": "MIT",
