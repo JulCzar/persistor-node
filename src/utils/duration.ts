@@ -55,7 +55,9 @@ export class Duration {
       this._days +
       this._hours / 24 +
       this._minutes / 24 / 60 +
-      this._seconds / 24 / 60 / 60
+      this._seconds / 24 / 60 / 60 +
+      this._milliseconds / 24 / 60 / 60 / 1000 +
+      this._microseconds / 24 / 60 / 60 / 1000 / 1000
     );
   }
 
@@ -70,7 +72,6 @@ export class Duration {
     );
   }
 
-  /** return how many minutes are in this duration */
   get inMinutes(): number {
     return (
       this._days * 24 * 60 +

@@ -1,4 +1,4 @@
-import { format, isDate, isValid, parse } from 'date-fns';
+import { format, isBefore, isValid, parse } from 'date-fns';
 import { DATE_FORMAT } from '../constants';
 
 const valueSyn = Symbol('value');
@@ -18,17 +18,13 @@ export class StoreItem {
   }
 
   get value() {
-    if (this.isExpired()) {
-      return undefined;
-    }
+    if (this.isExpired()) return undefined;
 
     return this[valueSyn];
   }
 
   isExpired() {
-    if (this._expireIn && isDate(this._expireIn)) {
-      return this._expireIn < new Date();
-    }
+    if (this._expireIn) return isBefore(this._expireIn, new Date());
 
     return false;
   }

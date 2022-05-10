@@ -1,7 +1,8 @@
-import { isValid, parse } from 'date-fns';
+import { isBefore, isValid, parse } from 'date-fns';
 import { DATE_FORMAT, DEFAULT_STORAGE_KEY, TAG } from '../../constants';
 import {
   internalErrors,
+  STORAGE_EXPIRED,
   STRUCTURE_IS_INVALID,
   STRUCTURE_NON_EXISTENT,
 } from '../../errors';
@@ -99,21 +100,17 @@ export class AsyncPersistentStorage {
         );
 
         if (persistentStorage) instances.set(key, persistentStorage);
+        else storage.removeItem(key);
       }
     } catch (e) {
       const error = e as Error;
 
+      if (error === STORAGE_EXPIRED) storage.removeItem(key);
+
       if (!internalErrors.includes(error)) console.warn(TAG, { error });
-      else console.log(TAG, error.message);
     } finally {
       this._instances = instances;
     }
-  }
-  private set [storeSetter](store: Map<string, StoreItem>) {
-    this._store = store;
-  }
-  private set [expireInSetter](expireIn: Date | undefined) {
-    this._expireIn = expireIn;
   }
   get length() {
     return this._store.size;
@@ -143,23 +140,18 @@ export class AsyncPersistentStorage {
       this._observers = this._observers.filter(o => o !== observer);
     };
   }
-  setItem<T>(key: string, value: T, config?: SetItemConfig): void {
+  setItem(key: string, value: any, config?: SetItemConfig): void {
     const expireIn = getExpirationDate(config?.expireIn);
     this._store.set(key, new StoreItem(value, expireIn));
 
     this.notify({ type: 'SET', payload: key });
   }
-  removeItem(key: string): void {
+  removeItem(key: string) {
     const store = this._store;
 
     store.delete(key);
 
-    this.notify({
-      type: 'REMOVE',
-      payload: {
-        key,
-      },
-    });
+    this.notify({ type: 'REMOVE', payload: { key } });
   }
   getItem<T = unknown>(key: string): Nullable<T> {
     const store = this._store;
@@ -178,15 +170,13 @@ export class AsyncPersistentStorage {
 
     return null;
   }
-  clear(): void {
+  clear() {
     this._store.clear();
 
     this.notify({ type: 'CLEAR' });
   }
   isExpired() {
-    if (this._expireIn) {
-      return this._expireIn < new Date();
-    }
+    if (this._expireIn) return isBefore(this._expireIn, new Date());
 
     return false;
   }
@@ -205,6 +195,9 @@ export class AsyncPersistentStorage {
         if (!isValid(expireInDate)) return null;
 
         _expireIn = expireInDate;
+
+        if (_expireIn)
+          if (isBefore(_expireIn, new Date())) throw STORAGE_EXPIRED;
       }
 
       for (const { key, value } of items) {
@@ -229,5 +222,11 @@ export class AsyncPersistentStorage {
     for (const [key, value] of store) items.push({ key, value });
 
     return { items, expireIn };
+  }
+  private set [storeSetter](store: Map<string, StoreItem>) {
+    this._store = store;
+  }
+  private set [expireInSetter](expireIn: Date | undefined) {
+    this._expireIn = expireIn;
   }
 }
