@@ -29,6 +29,7 @@ const expireInSetter = Symbol('expireInSetter');
 
 export class PersistentStorage {
   private static _instances: Map<string, PersistentStorage>;
+  private static _timeout: unknown = null;
   private _config: PersistentStorageConfigs;
   private _store: Map<string, StoreItem>;
   private _observers: Observer[];
@@ -114,17 +115,24 @@ export class PersistentStorage {
     evt: StoreEvent,
     key: string
   ) {
-    const instances = this._instances;
+    const self = PersistentStorage;
 
-    const data: MultitonDto[] = [];
-    for (const [key, item] of instances) {
-      if (!item.isExpired()) data.push({ key, item });
-      else instances.delete(key);
-    }
+    // @ts-ignore
+    if (self._timeout) clearTimeout(self._timeout);
 
-    const json = JSON.stringify(data);
+    self._timeout = setTimeout(async function _persist() {
+      const instances = self._instances;
 
-    if (evt.type !== 'GET') storage.setItem(key, json);
+      const data: MultitonDto[] = [];
+      for (const [key, item] of instances) {
+        if (!item.isExpired()) data.push({ key, item });
+        else instances.delete(key);
+      }
+
+      const json = JSON.stringify(data);
+
+      if (evt.type !== 'GET') storage.setItem(key, json);
+    }, 100);
   }
   subscribe(observer: Observer): Unsubscriber {
     this._observers.push(observer);

@@ -29,6 +29,7 @@ const expireInSetter = Symbol('expireInSetter');
 
 export class AsyncPersistentStorage {
   private static _instances: Map<string, AsyncPersistentStorage>;
+  private static _timeout: unknown = null;
   private _config: AsyncPersistentStorageConfigs;
   private _storage: Storage | AsyncStorage;
   private _store: Map<string, StoreItem>;
@@ -120,17 +121,24 @@ export class AsyncPersistentStorage {
     evt: StoreEvent,
     key: string
   ) {
-    const instances = this._instances;
+    const self = AsyncPersistentStorage;
 
-    const data: AsyncMultitonDto[] = [];
-    for (const [key, item] of instances) {
-      if (!item.isExpired()) data.push({ key, item });
-      else instances.delete(key);
-    }
+    // @ts-ignore
+    if (self._timeout) clearTimeout(self._timeout);
 
-    const json = JSON.stringify(data);
+    self._timeout = setTimeout(async function _persist() {
+      const instances = self._instances;
 
-    if (evt.type !== 'GET') storage.setItem(key, json);
+      const data: AsyncMultitonDto[] = [];
+      for (const [key, item] of instances) {
+        if (!item.isExpired()) data.push({ key, item });
+        else instances.delete(key);
+      }
+
+      const json = JSON.stringify(data);
+
+      if (evt.type !== 'GET') storage.setItem(key, json);
+    }, 100);
   }
   subscribe(observer: Observer): Unsubscriber {
     // adicionar um Observer a uma lista e retornar um método para removê-lo desta lista
