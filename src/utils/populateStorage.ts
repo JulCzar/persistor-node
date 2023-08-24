@@ -51,9 +51,10 @@ export const populate = async ({
         continue;
       }
 
-      const expireDuration = Duration.of({
-        milliseconds: valueParsed.expireAt - Date.now(),
-      });
+      const expireDuration = Duration.between(
+        new Date(valueParsed.expireAt),
+        new Date()
+      );
 
       if (expireDuration.isNegative) persistor.removeItem(key);
       else storage.set(key, JSON.parse(valueParsed.value, reviver));

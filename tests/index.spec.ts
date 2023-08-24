@@ -4,7 +4,8 @@ import { PersistentStorage, Storage } from '../src';
 const storage: Map<string, string> = new Map();
 // simulating a storage with previous values in it
 storage.set('foo', '{"expireAt":1292910058337,"value":"bar"}');
-storage.set('bar', 'null');
+storage.set('bar', 'b');
+storage.set('bat', 'null');
 storage.set('baz', '{"expireAt":null,"value":"bar"}');
 const storageReplace: Storage = {
   get length() {
