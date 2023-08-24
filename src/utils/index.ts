@@ -1,1 +1,2 @@
-export * from './duration';
+export { testSanitization } from './testSanitization';
+export { populate } from './populateStorage';

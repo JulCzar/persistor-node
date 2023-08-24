@@ -1,10 +1,3 @@
 export * from './services';
-export * from './utils';
-export {
-  Observer,
-  SetItemConfig,
-  AsyncPersistentStorageConfigs,
-  PersistentStorageConfigs,
-  StoreEvent,
-  Unsubscriber,
-} from './types';
+export { STATUS_REPORT_KEY } from './constants';
+export * from './types';

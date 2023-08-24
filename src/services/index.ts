@@ -1,2 +1,1 @@
-export * from './PersistentStorage'
-export * from './AsyncPersistentStorage'
+export { PersistentStorage, Replacer, Reviver } from './PersistentStorage';

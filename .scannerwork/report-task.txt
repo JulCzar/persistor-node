@@ -1,0 +1,6 @@
+projectKey=Persistor-Node
+serverUrl=http://localhost:9000
+serverVersion=10.0.0.68432
+dashboardUrl=http://localhost:9000/dashboard?id=Persistor-Node
+ceTaskId=AYoprWtqnbNe02L9LbZ6
+ceTaskUrl=http://localhost:9000/api/ce/task?id=AYoprWtqnbNe02L9LbZ6

@@ -1,5 +1,7 @@
+coverage
 storage
 node_modules
+analyze.bat
 .github
 dist
 types
